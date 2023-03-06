@@ -1,5 +1,22 @@
 # Flyway migrations
 
+## Task-1.
+1. Create tables:
+	customers with columns id, name, and email.
+	orders with columns id, customer_id, and total_price.
+2. Modify the customers table by adding a new column named address.
+3. Modify the orders table by adding a new column named status not null and update existing records with ‘OLD’ status.
+4. Add a new table called products with columns id, name, and price.
+5. Create a repeatable migration script that adds 2 sample products to the products table.
+6. Modify the products table by adding a new column named description.
+7. Create a repeatable migration script that adds a new customer to the customers table.
+8. Modify the customers table by renaming the name column to first_name.
+9. Add a new column named last_name to the customers table.
+10. Create a repeatable migration script that adds 3 sample orders to the orders table.
+11. Modify the orders table by adding a new column named order_date.
+12. Create a repeatable migration script that updates the price of all products by adding a 10% discount.
+13. Create a repeatable migration script that updates the status of all orders with a total_price less than 50 to ‘pending’.
+
 Run:
 ```
 $: cd flyway
