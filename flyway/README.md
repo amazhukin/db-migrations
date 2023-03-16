@@ -1,40 +1,138 @@
 # Flyway migrations
 
-## Task-1.
-1. Create tables:
-	customers with columns id, name, and email.
-	orders with columns id, customer_id, and total_price.
-2. Modify the customers table by adding a new column named address.
-3. Modify the orders table by adding a new column named status not null and update existing records with ‘OLD’ status.
-4. Add a new table called products with columns id, name, and price.
-5. Create a repeatable migration script that adds 2 sample products to the products table.
-6. Modify the products table by adding a new column named description.
-7. Create a repeatable migration script that adds a new customer to the customers table.
-8. Modify the customers table by renaming the name column to first_name.
-9. Add a new column named last_name to the customers table.
-10. Create a repeatable migration script that adds 3 sample orders to the orders table.
-11. Modify the orders table by adding a new column named order_date.
-12. Create a repeatable migration script that updates the price of all products by adding a 10% discount.
-13. Create a repeatable migration script that updates the status of all orders with a total_price less than 50 to ‘pending’.
-
-Run:
+## Task-2. Using flyway repair
+### 1. Run migrations V1-V9 + R1-R5
 ```
-$: cd flyway
 $: mvn clean flyway:migrate -Dflyway.configFiles=myFlywayConfig.properties
 ```
-
-Output:
+Table `flyway_schema_history`:
 ```
-[INFO] --- flyway-maven-plugin:9.12.0:migrate (default-cli) @ db-migration ---
-[INFO] Flyway Community Edition 9.12.0 by Redgate
-[INFO] See what's new here: https://flywaydb.org/documentation/learnmore/releaseNotes#9.12.0
-[INFO]
-[INFO] Database: jdbc:h2:mem:DATABASE (H2 2.1)
-[INFO] Creating schema "app-db" ...
-[INFO] Creating Schema History table "app-db"."flyway_schema_history" ...
-[INFO] Current version of schema "app-db": null
-[INFO] Migrating schema "app-db" to version "1.0.0 - init"
-[INFO] Migrating schema "app-db" to version "2.0.0 - add department"
-[INFO] Migrating schema "app-db" to version "2.1.0 - link users and departments"
-[INFO] Successfully applied 3 migrations to schema "app-db", now at version v2.1.0 (execution time 00:00.033s)
++------------+---------+-----------------------------------------------------+------+---------------------+---------+----------+
+| Category   | Version | Description                                         | Type | Installed On        | State   | Undoable |
++------------+---------+-----------------------------------------------------+------+---------------------+---------+----------+
+| Versioned  | 1       | create table customers                              | SQL  | 2023-03-16 06:52:54 | Success | No       |
+| Versioned  | 2       | create tables orders                                | SQL  | 2023-03-16 06:52:57 | Success | No       |
+| Versioned  | 3       | add column address to table customers               | SQL  | 2023-03-16 06:52:59 | Success | No       |
+| Versioned  | 4       | add column status with value to table orders        | SQL  | 2023-03-16 06:53:01 | Success | No       |
+| Versioned  | 5       | create table products                               | SQL  | 2023-03-16 06:53:03 | Success | No       |
+| Versioned  | 6       | add column description to table products            | SQL  | 2023-03-16 06:53:05 | Success | No       |
+| Versioned  | 7       | rename column name to first name at table customers | SQL  | 2023-03-16 06:53:07 | Success | No       |
+| Versioned  | 8       | add columnt last name to table customers            | SQL  | 2023-03-16 06:53:10 | Success | No       |
+| Versioned  | 9       | add column order date to table products             | SQL  | 2023-03-16 06:53:12 | Success | No       |
+| Repeatable |         | 1 insert data to table products                     | SQL  | 2023-03-16 06:55:42 | Success |          |
+| Repeatable |         | 2 insert data to table customers                    | SQL  | 2023-03-16 06:55:44 | Success |          |
+| Repeatable |         | 3 insert data to table orders                       | SQL  | 2023-03-16 06:55:46 | Success |          |
+| Repeatable |         | 4 update price at table products                    | SQL  | 2023-03-16 06:55:48 | Success |          |
+| Repeatable |         | 5 update status at table orders                     | SQL  | 2023-03-16 06:55:50 | Success |          |
++------------+---------+-----------------------------------------------------+------+---------------------+---------+----------+
+```
+
+### 2. Create `R__6_incorrect_sql.sql`, it’s invalid sql, because status field is not null, run it - got error
+```
+$: mvn clean flyway:migrate -Dflyway.configFiles=myFlywayConfig.properties
+
+...
+
+[ERROR] Failed to execute goal org.flywaydb:flyway-maven-plugin:9.12.0:migrate (default-cli) on project db-migration: org.flywaydb.core.internal.command.DbMigrate$FlywayMigrateException: Migration R__6_incorrect_sql.sql failed
+[ERROR] ---------------------------------------
+[ERROR] SQL State  : HY000
+[ERROR] Error Code : 1364
+[ERROR] Message    : Field 'status' doesn't have a default value
+[ERROR] Location   : db/migration/R__6_incorrect_sql.sql (/Users/amazhukin/Projects/db-migrations/flyway/db/migration/R__6_incorrect_sql.sql)
+[ERROR] Line       : 1
+[ERROR] Statement  : INSERT INTO orders (customer_id, total_price)
+[ERROR] VALUES (1, 999.90)
+```
+and new row at `flyway_schema_history`:
+```
++------------+---------+-----------------------------------------------------+------+---------------------+---------+----------+
+| Category   | Version | Description                                         | Type | Installed On        | State   | Undoable |
++------------+---------+-----------------------------------------------------+------+---------------------+---------+----------+
+| Versioned  | 1       | create table customers                              | SQL  | 2023-03-16 06:52:54 | Success | No       |
+| Versioned  | 2       | create tables orders                                | SQL  | 2023-03-16 06:52:57 | Success | No       |
+| Versioned  | 3       | add column address to table customers               | SQL  | 2023-03-16 06:52:59 | Success | No       |
+| Versioned  | 4       | add column status with value to table orders        | SQL  | 2023-03-16 06:53:01 | Success | No       |
+| Versioned  | 5       | create table products                               | SQL  | 2023-03-16 06:53:03 | Success | No       |
+| Versioned  | 6       | add column description to table products            | SQL  | 2023-03-16 06:53:05 | Success | No       |
+| Versioned  | 7       | rename column name to first name at table customers | SQL  | 2023-03-16 06:53:07 | Success | No       |
+| Versioned  | 8       | add columnt last name to table customers            | SQL  | 2023-03-16 06:53:10 | Success | No       |
+| Versioned  | 9       | add column order date to table products             | SQL  | 2023-03-16 06:53:12 | Success | No       |
+| Repeatable |         | 1 insert data to table products                     | SQL  | 2023-03-16 06:55:42 | Success |          |
+| Repeatable |         | 2 insert data to table customers                    | SQL  | 2023-03-16 06:55:44 | Success |          |
+| Repeatable |         | 3 insert data to table orders                       | SQL  | 2023-03-16 06:55:46 | Success |          |
+| Repeatable |         | 4 update price at table products                    | SQL  | 2023-03-16 06:55:48 | Success |          |
+| Repeatable |         | 5 update status at table orders                     | SQL  | 2023-03-16 06:55:50 | Success |          |
+| Repeatable |         | 6 incorrect sql                                     | SQL  |                     | Pending |          |
++------------+---------+-----------------------------------------------------+------+---------------------+---------+----------+
+```
+
+### 3. Need to repair migration state, so run `flyway:repair`
+```
+$: mvn clean flyway:migrate -Dflyway.configFiles=myFlywayConfig.properties
+
+...
+
+[INFO] Successfully repaired schema history table `b1l1txrjhdyi48snv5yp`.`flyway_schema_history` (execution time 00:03.707s).
+[INFO] Manual cleanup of the remaining effects of the failed migration may still be required.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+```
+Table `flyway_schema_history`:
+```
++------------+---------+-----------------------------------------------------+------+---------------------+---------+----------+
+| Category   | Version | Description                                         | Type | Installed On        | State   | Undoable |
++------------+---------+-----------------------------------------------------+------+---------------------+---------+----------+
+| Versioned  | 1       | create table customers                              | SQL  | 2023-03-16 06:52:54 | Success | No       |
+| Versioned  | 2       | create tables orders                                | SQL  | 2023-03-16 06:52:57 | Success | No       |
+| Versioned  | 3       | add column address to table customers               | SQL  | 2023-03-16 06:52:59 | Success | No       |
+| Versioned  | 4       | add column status with value to table orders        | SQL  | 2023-03-16 06:53:01 | Success | No       |
+| Versioned  | 5       | create table products                               | SQL  | 2023-03-16 06:53:03 | Success | No       |
+| Versioned  | 6       | add column description to table products            | SQL  | 2023-03-16 06:53:05 | Success | No       |
+| Versioned  | 7       | rename column name to first name at table customers | SQL  | 2023-03-16 06:53:07 | Success | No       |
+| Versioned  | 8       | add columnt last name to table customers            | SQL  | 2023-03-16 06:53:10 | Success | No       |
+| Versioned  | 9       | add column order date to table products             | SQL  | 2023-03-16 06:53:12 | Success | No       |
+| Repeatable |         | 1 insert data to table products                     | SQL  | 2023-03-16 06:55:42 | Success |          |
+| Repeatable |         | 2 insert data to table customers                    | SQL  | 2023-03-16 06:55:44 | Success |          |
+| Repeatable |         | 3 insert data to table orders                       | SQL  | 2023-03-16 06:55:46 | Success |          |
+| Repeatable |         | 4 update price at table products                    | SQL  | 2023-03-16 06:55:48 | Success |          |
+| Repeatable |         | 5 update status at table orders                     | SQL  | 2023-03-16 06:55:50 | Success |          |
++------------+---------+-----------------------------------------------------+------+---------------------+---------+----------+
+```
+
+### 4. Update `R__6_incorrect_sql.sql`, rename to `R__6_correct_sql.sql` (pushed this file as __R__6_correct_sql.sql) and run migration again:
+
+```
+$: mvn clean flyway:migrate -Dflyway.configFiles=myFlywayConfig.properties
+
+...
+
+[INFO] Migrating schema `b1l1txrjhdyi48snv5yp` with repeatable migration "6 correct sql"
+[INFO] Successfully applied 1 migration to schema `b1l1txrjhdyi48snv5yp` (execution time 00:03.134s)
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+```
+
+Table `flyway_schema_history`:
+```
++------------+---------+-----------------------------------------------------+------+---------------------+---------+----------+
+| Category   | Version | Description                                         | Type | Installed On        | State   | Undoable |
++------------+---------+-----------------------------------------------------+------+---------------------+---------+----------+
+| Versioned  | 1       | create table customers                              | SQL  | 2023-03-16 06:52:54 | Success | No       |
+| Versioned  | 2       | create tables orders                                | SQL  | 2023-03-16 06:52:57 | Success | No       |
+| Versioned  | 3       | add column address to table customers               | SQL  | 2023-03-16 06:52:59 | Success | No       |
+| Versioned  | 4       | add column status with value to table orders        | SQL  | 2023-03-16 06:53:01 | Success | No       |
+| Versioned  | 5       | create table products                               | SQL  | 2023-03-16 06:53:03 | Success | No       |
+| Versioned  | 6       | add column description to table products            | SQL  | 2023-03-16 06:53:05 | Success | No       |
+| Versioned  | 7       | rename column name to first name at table customers | SQL  | 2023-03-16 06:53:07 | Success | No       |
+| Versioned  | 8       | add columnt last name to table customers            | SQL  | 2023-03-16 06:53:10 | Success | No       |
+| Versioned  | 9       | add column order date to table products             | SQL  | 2023-03-16 06:53:12 | Success | No       |
+| Repeatable |         | 1 insert data to table products                     | SQL  | 2023-03-16 06:55:42 | Success |          |
+| Repeatable |         | 2 insert data to table customers                    | SQL  | 2023-03-16 06:55:44 | Success |          |
+| Repeatable |         | 3 insert data to table orders                       | SQL  | 2023-03-16 06:55:46 | Success |          |
+| Repeatable |         | 4 update price at table products                    | SQL  | 2023-03-16 06:55:48 | Success |          |
+| Repeatable |         | 5 update status at table orders                     | SQL  | 2023-03-16 06:55:50 | Success |          |
+| Repeatable |         | 6 correct sql                                       | SQL  | 2023-03-16 07:12:51 | Missing |          |
++------------+---------+-----------------------------------------------------+------+---------------------+---------+----------+
 ```
