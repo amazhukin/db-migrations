@@ -16,6 +16,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
+    <log4j2.version>2.17.2</log4j2.version>
   </properties>
 
   <dependencies>
@@ -28,6 +29,21 @@
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
       <version>8.0.32</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>${log4j2.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>${log4j2.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <version>${log4j2.version}</version>
     </dependency>
   </dependencies>
 
@@ -78,9 +94,10 @@
           <artifactId>flyway-maven-plugin</artifactId>
           <version>9.12.0</version>
           <configuration>
+            <loggers>log4j2</loggers>
             <url>jdbc:mysql://b1l1txrjhdyi48snv5yp-mysql.services.clever-cloud.com:3306/b1l1txrjhdyi48snv5yp</url>
             <user>ulrgmevxog8aumhh</user>
-            <password>123</password>
+            <password>***</password>
           </configuration>
         </plugin>
       </plugins>
